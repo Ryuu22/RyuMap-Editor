@@ -1,5 +1,7 @@
 #include <fstream>
 #include <iostream>
+#include "raylib.h"
+
 
 namespace rmapfs {
     struct Vector2int
@@ -12,6 +14,20 @@ namespace rmapfs {
     	}
     	short int x;
     	short int y;
+    };
+
+    struct MapVector
+    {
+        MapVector(){}
+        MapVector(short int xi, short int yi, short int isCollideri)
+        {
+            x = xi;
+            y = yi;
+            isCollider = isCollideri;
+        }
+        short int x;
+        short int y;
+        short int isCollider;
     };
 
     class MapTile{
@@ -29,59 +45,86 @@ namespace rmapfs {
     	}
     };
 
-    void loadMap()
-    {
-
-        std::fstream myFile;
-        myFile.open ("data.rmap", std::ios::in | std::ios::binary);
-
-        //Read file header
-        char header[4];
-    	char version[4];
-    	int tileSetID;
-
-        myFile.read((char*)&header, sizeof(header));
-        myFile.read((char*)&version, sizeof(version));
-        myFile.read((char*)&tileSetID, sizeof(tileSetID));
-
-        //Read map size
-    	Vector2int mapsize;
-        myFile.read((char*)&mapsize.x, sizeof(mapsize.x));
-        myFile.read((char*)&mapsize.y, sizeof(mapsize.y));
-
-        //Read the actual map data
-    	MapTile map[mapsize.x][mapsize.y];
-
-        for (int i = 0; i < mapsize.x; ++i)
+    class Map{
+    public:
+        MapTile arr[10][10];
+        Map(){}
+        void loadMap()
         {
-            for (int j = 0; j < mapsize.y; ++j)
-            {
-            	unsigned short int x;
-            	unsigned short int y;
-            	unsigned short int type;
-        	    myFile.read((char*)&x, sizeof(x));
-        	    myFile.read((char*)&y, sizeof(y));
-        	    myFile.read((char*)&type, sizeof(type));
 
-        	    map[i][j] = MapTile(x, y , type);
+            std::fstream myFile;
+            myFile.open ("data.rmap", std::ios::in | std::ios::binary);
+
+            //Read file header
+            char header[4];
+            char version[4];
+            int tileSetID;
+
+            myFile.read((char*)&header, sizeof(header));
+            myFile.read((char*)&version, sizeof(version));
+            myFile.read((char*)&tileSetID, sizeof(tileSetID));
+
+            //Read map size
+            Vector2int mapsize;
+            myFile.read((char*)&mapsize.x, sizeof(mapsize.x));
+            myFile.read((char*)&mapsize.y, sizeof(mapsize.y));
+
+            //Read the actual map data
+            MapTile map[mapsize.x][mapsize.y];
+
+            for (int i = 0; i < mapsize.x; ++i)
+            {
+                for (int j = 0; j < mapsize.y; ++j)
+                {
+                    unsigned short int x;
+                    unsigned short int y;
+                    unsigned short int type;
+                    myFile.read((char*)&x, sizeof(x));
+                    myFile.read((char*)&y, sizeof(y));
+                    myFile.read((char*)&type, sizeof(type));
+
+                    arr[i][j] = MapTile(x, y , type);
+                }
+            }
+
+            //DRAW IN CONSOLE
+            std::cout << "Header: "<< header << std::endl;
+            std::cout << "Map size: "<< mapsize.x << "x" << mapsize.y << std::endl;
+
+            for (int i = 0; i < mapsize.x; ++i)
+            {
+                for (int j = 0; j < mapsize.y; ++j)
+                {
+                    std::cout << " " << arr[i][j].type;
+                }
+                std::cout << std::endl;
+            }
+            //arr = map;
+            myFile.close();
+        }
+        void draw(MapVector *mapIndex, Texture2D tilemap)
+        {
+
+            float marginX = 300.0f;
+            float marginY = 50.0f;
+
+            for (int i = 0; i < 10; ++i)
+            {
+                for (int j = 0; j < 10; ++j)
+                {
+                    int tileType = arr[i][j].type;
+                    Rectangle rec = {(float)mapIndex[tileType].x * 32, (float)mapIndex[tileType].y * 32,32,32};
+
+                    DrawTextureRec(tilemap, rec, Vector2{(float) (i * 32) + marginX , (float)(j * 32) + marginY}, WHITE); 
+                }
+                std::cout << std::endl;
             }
         }
+    };
 
 
-    	std::cout << "Header: "<< header << std::endl;
-    	std::cout << "Map size: "<< mapsize.x << "x" << mapsize.y << std::endl;
 
-        for (int i = 0; i < mapsize.x; ++i)
-        {
-            for (int j = 0; j < mapsize.y; ++j)
-            {
-            	std::cout << " " << map[i][j].type;
-            }
-            std::cout << std::endl;
-        }
 
-        myFile.close();
-    }
     void saveMap()
     {
     	Vector2int mapsize = Vector2int(10,10);
