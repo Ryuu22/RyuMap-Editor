@@ -9,8 +9,9 @@ int main(int argc, char const *argv[])
 {
 	// Initialization
     //--------------------------------------------------------------------------------------
-    const int screenWidth = 800;
-    const int screenHeight = 450;
+      
+    const int screenWidth = 1440;
+    const int screenHeight = 900;
 
     bool dropDown001EditMode = false;
     int dropdownBox001Active = 0;
@@ -55,6 +56,8 @@ int main(int argc, char const *argv[])
         }
 
         if (IsKeyPressed(KEY_Z))zoomLock = !zoomLock;
+
+        if (IsKeyPressed(KEY_F)) ToggleFullscreen();
 
 
 
